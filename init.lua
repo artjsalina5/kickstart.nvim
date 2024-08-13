@@ -86,7 +86,7 @@ If you experience any errors while trying to install kickstart, run `:checkhealt
 --  NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
-
+vim.opt.shortmess:append 'I'
 vim.g.have_nerd_font = true
 
 -- [[ Setting options ]]
@@ -99,7 +99,7 @@ vim.opt.number = true
 vim.opt.mouse = 'a'
 -- Don't show the mode, since it's already in the status line
 vim.opt.showmode = false
-vim.cmd('packadd termdebug')
+
 -- Sync clipboard between OS and Neovim.
 --  Schedule the setting after `UiEnter` because it can increase startup-time.
 --  Remove this option if you want your OS clipboard to remain independent.
@@ -157,6 +157,16 @@ vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 -- Diagnostic keymaps
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
+vim.o.autochdir = true
+if vim.fn.has 'win32' == 1 then
+  vim.o.shell = 'pwsh'
+  vim.o.shellcmdflag =
+    '-NoLogo -NoProfile -ExecutionPolicy RemoteSigned -Command [Console]::InputEncoding=[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;'
+  vim.o.shellredir = '2>&1 | Out-File -Encoding UTF8 %s; exit $LastExitCode'
+  vim.o.shellpipe = '2>&1 | Out-File -Encoding UTF8 %s; exit $LastExitCode'
+  vim.o.shellquote = ''
+  vim.o.shellxquote = ''
+end
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
 -- is not what someone will guess without a bit more experience.
@@ -165,18 +175,24 @@ vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagn
 -- or just use <C-\><C-n> to exit terminal mode
 vim.keymap.set('i', 'jk', '<Esc>', { desc = 'Exit insert mode' })
 
-vim.keymap.set('n', '<leader>h', function()
-  vim.cmd 'botright split'
+local function open_terminal(split_cmd, resize_cmd)
+  local cwd = vim.fn.expand '%:p:h'
+  vim.cmd(split_cmd)
   vim.cmd 'terminal'
-  vim.cmd 'resize 10'
-end, { noremap = true, silent = true, desc = 'Open horizontal terminal' })
+  if resize_cmd then
+    vim.cmd(resize_cmd)
+  end
+  vim.cmd('lcd ' .. cwd)
+end
+
+vim.keymap.set('n', '<leader>h', function()
+  open_terminal('botright split', 'resize 10')
+end, { noremap = true, silent = true, desc = 'Open horizontal terminal in current file directory' })
 
 vim.keymap.set('n', '<leader>v', function()
-  vim.cmd 'vsplit'
-  vim.cmd 'terminal'
+  open_terminal('vsplit', nil)
   vim.cmd 'wincmd ='
-end, { noremap = true, silent = true, desc = 'Open vertical terminal' })
-
+end, { noremap = true, silent = true, desc = 'Open vertical terminal in current file directory' })
 -- Exit terminal mode
 vim.keymap.set('t', 'jk', [[<C-\><C-n>]], { noremap = true, silent = true, desc = 'Exit terminal mode' })
 
@@ -260,7 +276,6 @@ require('lazy').setup({
       },
     },
   },
-
   -- NOTE: Plugins can also be configured to run Lua code when they are loaded.
   --
   -- This is often very useful to both group configuration, as well as handle
@@ -275,7 +290,6 @@ require('lazy').setup({
   -- Then, because we use the `config` key, the configuration only runs
   -- after the plugin has been loaded:
   --  config = function() ... end
-
   { -- Useful plugin to show you pending keybinds.
     'folke/which-key.nvim',
     event = 'VimEnter', -- Sets the loading event to 'VimEnter'
