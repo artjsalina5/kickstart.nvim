@@ -78,10 +78,7 @@ Kickstart Guide:
 
 If you experience any errors while trying to install kickstart, run `:checkhealth` for more info.
 
-I hope you enjoy your Neovim journey,
-- TJ
 
-P.S. You can delete this when you're done too. It's your config now! :)
 --]]
 
 -- Set <space> as the leader key
@@ -90,26 +87,19 @@ P.S. You can delete this when you're done too. It's your config now! :)
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
--- Set to true if you have a Nerd Font installed and selected in the terminal
-vim.g.have_nerd_font = false
+vim.g.have_nerd_font = true
 
 -- [[ Setting options ]]
 -- See `:help vim.opt`
 -- NOTE: You can change these options as you wish!
 --  For more options, you can see `:help option-list`
 
--- Make line numbers default
 vim.opt.number = true
--- You can also add relative line numbers, to help with jumping.
---  Experiment for yourself to see if you like it!
--- vim.opt.relativenumber = true
-
--- Enable mouse mode, can be useful for resizing splits for example!
+-- You can also add -- Enable mouse mode, can be useful for resizing splits for example!
 vim.opt.mouse = 'a'
-
 -- Don't show the mode, since it's already in the status line
 vim.opt.showmode = false
-
+vim.cmd('packadd termdebug')
 -- Sync clipboard between OS and Neovim.
 --  Schedule the setting after `UiEnter` because it can increase startup-time.
 --  Remove this option if you want your OS clipboard to remain independent.
@@ -173,13 +163,28 @@ vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagn
 --
 -- NOTE: This won't work in all terminal emulators/tmux/etc. Try your own mapping
 -- or just use <C-\><C-n> to exit terminal mode
-vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
+vim.keymap.set('i', 'jk', '<Esc>', { desc = 'Exit insert mode' })
+
+vim.keymap.set('n', '<leader>h', function()
+  vim.cmd 'botright split'
+  vim.cmd 'terminal'
+  vim.cmd 'resize 10'
+end, { noremap = true, silent = true, desc = 'Open horizontal terminal' })
+
+vim.keymap.set('n', '<leader>v', function()
+  vim.cmd 'vsplit'
+  vim.cmd 'terminal'
+  vim.cmd 'wincmd ='
+end, { noremap = true, silent = true, desc = 'Open vertical terminal' })
+
+-- Exit terminal mode
+vim.keymap.set('t', 'jk', [[<C-\><C-n>]], { noremap = true, silent = true, desc = 'Exit terminal mode' })
 
 -- TIP: Disable arrow keys in normal mode
--- vim.keymap.set('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
--- vim.keymap.set('n', '<right>', '<cmd>echo "Use l to move!!"<CR>')
--- vim.keymap.set('n', '<up>', '<cmd>echo "Use k to move!!"<CR>')
--- vim.keymap.set('n', '<down>', '<cmd>echo "Use j to move!!"<CR>')
+vim.keymap.set('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
+vim.keymap.set('n', '<right>', '<cmd>echo "Use l to move!!"<CR>')
+vim.keymap.set('n', '<up>', '<cmd>echo "Use k to move!!"<CR>')
+vim.keymap.set('n', '<down>', '<cmd>echo "Use j to move!!"<CR>')
 
 -- Keybinds to make split navigation easier.
 --  Use CTRL+<hjkl> to switch between windows
@@ -285,7 +290,6 @@ require('lazy').setup({
         { '<leader>s', group = '[S]earch' },
         { '<leader>w', group = '[W]orkspace' },
         { '<leader>t', group = '[T]oggle' },
-        { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
       }
     end,
   },
@@ -401,7 +405,6 @@ require('lazy').setup({
       end, { desc = '[S]earch [N]eovim files' })
     end,
   },
-
   -- LSP Plugins
   {
     -- `lazydev` configures Lua LSP for your Neovim config, runtime and plugins
@@ -881,10 +884,10 @@ require('lazy').setup({
   --  Uncomment any of the lines below to enable them (you will need to restart nvim).
   --
   -- require 'kickstart.plugins.debug',
-  -- require 'kickstart.plugins.indent_line',
-  -- require 'kickstart.plugins.lint',
-  -- require 'kickstart.plugins.autopairs',
-  -- require 'kickstart.plugins.neo-tree',
+  require 'kickstart.plugins.indent_line',
+  require 'kickstart.plugins.lint',
+  require 'kickstart.plugins.autopairs',
+  require 'kickstart.plugins.neo-tree',
   -- require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
@@ -892,7 +895,7 @@ require('lazy').setup({
   --
   --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
   --    For additional information, see `:help lazy.nvim-lazy.nvim-structuring-your-plugins`
-  -- { import = 'custom.plugins' },
+  { import = 'custom.plugins' },
 }, {
   ui = {
     -- If you are using a Nerd Font: set icons to an empty table which will use the
