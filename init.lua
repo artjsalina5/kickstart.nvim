@@ -88,7 +88,6 @@ vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 vim.opt.shortmess:append 'I'
 vim.g.have_nerd_font = true
-
 -- [[ Setting options ]]
 -- See `:help vim.opt`
 -- NOTE: You can change these options as you wish!
@@ -254,14 +253,22 @@ require('lazy').setup({
     'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
     {
       'lervag/vimtex',
+      lazy = false,
       config = function()
         -- Set Zathura as the PDF viewer
         vim.g.vimtex_view_method = 'zathura'
+        vim.opt.conceallevel = 1
 
         -- Any other VimTeX configurations you need
       end
     },
-    { 'EdenEast/nightfox.nvim' },
+    --{
+    -- 'EdenEast/nightfox.nvim',
+    --lazy = false,
+    -- priority = 1000,
+    -- config = function()
+    -- end
+    -- },
 
     -- NOTE: Plugins can also be added by using a table,
     -- with the first argument being the link and the following
@@ -270,7 +277,7 @@ require('lazy').setup({
     -- Use `opts = {}` to force a plugin to be loaded.
     --
 
-    { 'xigoi/vim-arturo' },
+    { 'xigoi/vim-arturo',     lazy = true },
     -- Here is a more advanced example where we pass configuration
     -- options to `gitsigns.nvim`. This is equivalent to the following Lua:
     --    require('gitsigns').setup({ ... })
@@ -443,7 +450,7 @@ require('lazy').setup({
         },
       },
     },
-    { 'Bilal2453/luvit-meta',     lazy = true },
+    { 'Bilal2453/luvit-meta', lazy = true },
     {
       -- Main LSP Configuration
       'neovim/nvim-lspconfig',
@@ -821,8 +828,7 @@ require('lazy').setup({
         -- Load the colorscheme here.
         -- Like many other themes, this one has different styles, and you could load
         -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-        vim.cmd.colorscheme 'nightfox'
-
+        vim.cmd.colorscheme 'retrobox'
         -- You can configure highlights by doing something like:
         vim.cmd.hi 'Comment gui=none'
       end,
