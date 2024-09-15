@@ -251,24 +251,6 @@ vim.opt.rtp:prepend(lazypath)
 require('lazy').setup({
   -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
   'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
-  {
-    'lervag/vimtex',
-    lazy = false,
-    config = function()
-      -- Set Zathura as the PDF viewer
-      vim.g.vimtex_view_method = 'zathura'
-      vim.opt.conceallevel = 1
-
-      -- Any other VimTeX configurations you need
-    end,
-  },
-  --{
-  -- 'EdenEast/nightfox.nvim',
-  --lazy = false,
-  -- priority = 1000,
-  -- config = function()
-  -- end
-  -- },
 
   -- NOTE: Plugins can also be added by using a table,
   -- with the first argument being the link and the following

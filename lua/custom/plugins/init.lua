@@ -15,4 +15,14 @@ return {
   },
   { 'xigoi/vim-arturo', lazy = true },
   { 'github/copilot.vim', lazy = false },
+  {
+    'lervag/vimtex',
+    lazy = false,
+    config = function()
+      -- Set Zathura as the PDF viewer
+      vim.opt.conceallevel = 1
+
+      -- Any other VimTeX configurations you need
+    end,
+  },
 }
