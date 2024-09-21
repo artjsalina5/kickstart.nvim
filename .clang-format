@@ -1,0 +1,41 @@
+# .clang-format configuration file
+
+BasedOnStyle: LLVM
+IndentWidth: 4          # Use 4 spaces for indentation (consistent with the style described).
+ColumnLimit: 80         # Enforce a column limit of 80 characters.
+UseTab: Never           # Always use spaces for indentation.
+BreakBeforeBraces: Attach  # Opening braces are on the same line as control statements (prefix notation).
+AllowShortIfStatementsOnASingleLine: false  # Each `if` statement must be on its own line, promoting readability.
+
+# Function and block formatting
+SpaceBeforeParens: ControlStatements  # Space between control keywords (if, for) and their parentheses.
+BinPackArguments: false              # Do not pack function arguments into a single line if they overflow.
+BinPackParameters: false             # Do not pack function parameters into a single line if they overflow.
+
+# Operators and punctuation
+SpaceAroundOperators: true           # Add spaces around operators like +, -, =, etc.
+SpaceAfterCStyleCast: true           # Add a space after C-style casts for readability.
+TernaryOperatorStyle: true           # Add spaces around the `?` and `:` in ternary expressions.
+
+# Trailing commas
+TrailingCommaInContainerLiterals: true  # Always include trailing commas in multi-line container literals (for readability).
+
+# Namespace formatting
+NamespaceIndentation: None           # Do not indent inside namespaces.
+IncludeBlocks: Preserve              # Leave include directives untouched for flexibility in managing includes.
+
+# Pointer and reference formatting
+PointerAlignment: Left               # Bind pointer and reference symbols (*) and (&) to the type (left-binding rule).
+DerivePointerAlignment: false        # Do not derive pointer alignment from the context.
+AlignAfterOpenBracket: false         # Do not align arguments after an opening bracket (keeps code compact).
+
+# Function declaration formatting
+SpaceBeforeCpp11BracedList: false    # Do not add a space before C++11 brace-enclosed initializers.
+SpaceBeforeCtorInitializerColon: true # Add a space before the constructor initializer colon in C++.
+
+# Comments
+AlignTrailingComments: true          # Align trailing comments to improve readability.
+
+# Custom formatting
+SortIncludes: false                  # Disable automatic sorting of includes.
+BreakConstructorInitializers: BeforeComma # Break constructor initializers before commas for readability.
