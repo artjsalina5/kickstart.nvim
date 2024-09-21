@@ -29,17 +29,47 @@ vim.g.maplocalleader = ' '
 vim.opt.shortmess:append 'I'
 vim.g.have_nerd_font = true
 vim.cmd.colorscheme 'retrobox'
-
 -- [[ Setting options ]]
 -- See `:help vim.opt`
 -- NOTE: You can change these options as you wish!
 --  For more options, you can see `:help option-list`
+vim.api.nvim_set_hl(0, 'Normal', { bg = 'NONE' })
+vim.api.nvim_set_hl(0, 'NormalNC', { bg = 'NONE' })
+vim.api.nvim_set_hl(0, 'NormalFloat', { bg = 'NONE' })
+vim.api.nvim_set_hl(0, 'FloatBorder', { bg = 'NONE' })
+vim.api.nvim_set_hl(0, 'SignColumn', { bg = 'NONE' })
+vim.api.nvim_set_hl(0, 'ColorColumn', { bg = '#000000', reverse = true })
+
+-- Utility function to check if a command exists
+local function command_exists(cmd)
+  local handle = io.popen("where " .. cmd .. " 2>nul")
+  local result = handle:read("*a")
+  handle:close()
+  return result ~= ""
+end
+
+-- Set makeprg based on available environment
+if vim.loop.os_uname().sysname == "Windows_NT" then
+  if command_exists("mingw32-make") then
+    -- Use MinGW make if available
+    vim.opt.makeprg = "mingw32-make"
+  elseif command_exists("make") then
+    -- Use standard make if available
+    vim.opt.makeprg = "make"
+  else
+    -- Default to wsl make if no MinGW make is found
+    vim.opt.makeprg = "wsl make"
+  end
+else
+  -- On Linux or other OS, just use make
+  vim.opt.makeprg = "make"
+end
 
 -- Set the color column at the 80th character
 vim.opt.colorcolumn = '80'
 
--- Enable line numbers
-vim.opt.number = true
+-- Enable relative line numbers
+vim.opt.relativenumber = true
 
 -- Enable auto-indent
 vim.opt.autoindent = true
@@ -53,36 +83,22 @@ vim.opt.lazyredraw = true
 -- Ignore case in search patterns
 vim.opt.ignorecase = true
 
--- Override 'ignorecase' if search contains uppercase letters
 vim.opt.smartcase = true
-
--- Enable incremental search
 vim.opt.incsearch = true
-
--- Highlight search matches
 vim.opt.hlsearch = true
-
--- Always show the status line
 vim.opt.laststatus = 2
-
--- Use spaces instead of tabs
 vim.opt.expandtab = true
 
 -- Enable smart tabs
 vim.opt.smarttab = true
-
 -- Set tab width
 vim.opt.tabstop = 2
-
 -- Set shift width for auto-indent
 vim.opt.shiftwidth = 2
-
 -- Set soft tab width (insert/delete the appropriate number of spaces)
 vim.opt.softtabstop = 2
-
 -- Set the cursor style (block cursor without blinking)
 vim.opt.guicursor = 'a:block-blinkon0'
-
 -- Show the cursor position in the status line
 vim.opt.ruler = true
 
@@ -96,7 +112,7 @@ vim.opt.cursorcolumn = true
 vim.opt.hidden = true
 
 -- Enable mouse mode, can be useful for resizing splits for example!
-vim.opt.mouse = 'a'
+vim.opt.mouse = ''
 -- Don't show the mode, since it's already in the status line
 vim.opt.showmode = false
 
@@ -146,14 +162,20 @@ vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 -- Diagnostic keymaps
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 vim.o.autochdir = true
-if vim.fn.has 'win32' == 1 then
+
+if vim.fn.has('win32') == 1 then
+  -- Set the shell to PowerShell
   vim.o.shell = 'pwsh'
-  vim.o.shellcmdflag =
-    '-NoLogo -NoProfile -ExecutionPolicy RemoteSigned -Command [Console]::InputEncoding=[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;'
-  vim.o.shellredir = '2>&1 | Out-File -Encoding UTF8 %s; exit $LastExitCode'
-  vim.o.shellpipe = '2>&1 | Out-File -Encoding UTF8 %s; exit $LastExitCode'
+  -- PowerShell command flags
+  vim.o.shellcmdflag = '-NoLogo -NoProfile -ExecutionPolicy RemoteSigned -Command'
+  -- Redirect and pipe output to handle it as UTF-8 properly
+  vim.o.shellredir = '2>&1 | Tee-Object -FilePath %s; exit $LastExitCode'
+  vim.o.shellpipe = '2>&1 | Tee-Object -FilePath %s; exit $LastExitCode'
+  -- No additional quoting needed in PowerShell
   vim.o.shellquote = ''
   vim.o.shellxquote = ''
+  -- Additional safety settings for handling paths and arguments
+  vim.o.shellxescape = ''
 end
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
@@ -201,7 +223,13 @@ vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper win
 
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
-
+local statusline_group = vim.api.nvim_create_augroup("CustomStatusline", { clear = true })
+vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI", "CursorMoved", "CursorMovedI" }, {
+  group = statusline_group,
+  callback = function()
+    vim.cmd.redrawstatus()
+  end,
+})
 -- Highlight when yanking (copying) text
 --  Try it with `yap` in normal mode
 --  See `:help vim.highlight.on_yank()`
@@ -278,22 +306,58 @@ require('lazy').setup({
   -- Then, because we use the `config` key, the configuration only runs
   -- after the plugin has been loaded:
   --  config = function() ... end
-  { -- Useful plugin to show you pending keybinds.
+  {                     -- Useful plugin to show you pending keybinds.
     'folke/which-key.nvim',
     event = 'VimEnter', -- Sets the loading event to 'VimEnter'
-    config = function() -- This is the function that runs, AFTER loading
-      require('which-key').setup()
+    opts = {
+      icons = {
+        -- set icon mappings to true if you have a Nerd Font
+        mappings = vim.g.have_nerd_font,
+        -- If you are using a Nerd Font: set icons.keys to an empty table which will use the
+        -- default whick-key.nvim defined Nerd Font icons, otherwise define a string table
+        keys = vim.g.have_nerd_font and {} or {
+          Up = '<Up> ',
+          Down = '<Down> ',
+          Left = '<Left> ',
+          Right = '<Right> ',
+          C = '<C-…> ',
+          M = '<M-…> ',
+          D = '<D-…> ',
+          S = '<S-…> ',
+          CR = '<CR> ',
+          Esc = '<Esc> ',
+          ScrollWheelDown = '<ScrollWheelDown> ',
+          ScrollWheelUp = '<ScrollWheelUp> ',
+          NL = '<NL> ',
+          BS = '<BS> ',
+          Space = '<Space> ',
+          Tab = '<Tab> ',
+          F1 = '<F1>',
+          F2 = '<F2>',
+          F3 = '<F3>',
+          F4 = '<F4>',
+          F5 = '<F5>',
+          F6 = '<F6>',
+          F7 = '<F7>',
+          F8 = '<F8>',
+          F9 = '<F9>',
+          F10 = '<F10>',
+          F11 = '<F11>',
+          F12 = '<F12>',
+        },
+      },
 
       -- Document existing key chains
-      require('which-key').add {
-        { '<leader>c', group = '[C]ode' },
+      spec = {
+        { '<leader>c', group = '[C]ode',     mode = { 'n', 'x' } },
         { '<leader>d', group = '[D]ocument' },
         { '<leader>r', group = '[R]ename' },
         { '<leader>s', group = '[S]earch' },
         { '<leader>w', group = '[W]orkspace' },
         { '<leader>t', group = '[T]oggle' },
-      }
-    end,
+        { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
+      },
+    },
   },
 
   -- NOTE: Plugins can specify dependencies.
@@ -324,7 +388,7 @@ require('lazy').setup({
       },
       { 'nvim-telescope/telescope-ui-select.nvim' },
       -- Useful for getting pretty icons, but requires a Nerd Font.
-      { 'nvim-tree/nvim-web-devicons', enabled = vim.g.have_nerd_font },
+      { 'nvim-tree/nvim-web-devicons',            enabled = vim.g.have_nerd_font },
     },
     config = function()
       -- Telescope is a fuzzy finder that comes with a lot of different things that
@@ -419,60 +483,141 @@ require('lazy').setup({
       },
     },
   },
-  { 'Bilal2453/luvit-meta', lazy = true },
+  { 'Bilal2453/luvit-meta',     lazy = true },
 
   { -- Main LSP Configuration
-     'neovim/nvim-lspconfig',
-  dependencies = {
-    { 'williamboman/mason.nvim', config = true },
-    'williamboman/mason-lspconfig.nvim',
-    'WhoIsSethDaniel/mason-tool-installer.nvim',
-    { 'j-hui/fidget.nvim', opts = {} },
-    'hrsh7th/cmp-nvim-lsp',
-  },
-  config = function()
-    -- Set up capabilities with consistent offset encoding
-    local capabilities = vim.lsp.protocol.make_client_capabilities()
-    capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())
-    capabilities.offset_encoding = { "utf-8" }  -- Set all LSPs to use utf-16 encoding
+    'neovim/nvim-lspconfig',
+    dependencies = {
+      { 'williamboman/mason.nvim', config = true },
+      'williamboman/mason-lspconfig.nvim',
+      'WhoIsSethDaniel/mason-tool-installer.nvim',
+      { 'j-hui/fidget.nvim',       opts = {} },
+      'hrsh7th/cmp-nvim-lsp',
+    },
+    config = function()
+      -- Set up capabilities with consistent offset encoding
+      local capabilities = vim.lsp.protocol.make_client_capabilities()
+      capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())
+      capabilities.offset_encoding = { "utf-8" } -- Set all LSPs to use utf-16 encoding
 
-    -- Attach LSP settings
-    vim.api.nvim_create_autocmd('LspAttach', {
-      group = vim.api.nvim_create_augroup('kickstart-lsp-attach', { clear = true }),
-      callback = function(event)
-        -- Standard LSP key mappings go here
-      end,
-    })
+      -- Attach LSP settings
+      vim.api.nvim_create_autocmd('LspAttach', {
+        group = vim.api.nvim_create_augroup('kickstart-lsp-attach', { clear = true }),
+        callback = function(event)
+          -- Standard LSP key mappings go here
+          local map = function(keys, func, desc, mode)
+            mode = mode or 'n'
+            vim.keymap.set(mode, keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
+          end
 
-    -- Language server configurations
-    local servers = {
-      clangd = {
-        capabilities = capabilities,
-        cmd = { "clangd", "--offset-encoding=utf-8" },  -- Ensure clangd uses utf-16
-      },
-      lua_ls = {
-        capabilities = capabilities,
-        settings = {
-          Lua = {
-            completion = {
-              callSnippet = 'Replace',
+          -- Jump to the definition of the word under your cursor.
+          --  This is where a variable was first declared, or where a function is defined, etc.
+          --  To jump back, press <C-t>.
+          map('gd', require('telescope.builtin').lsp_definitions, '[G]oto [D]efinition')
+
+          -- Find references for the word under your cursor.
+          map('gr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
+
+          -- Jump to the implementation of the word under your cursor.
+          --  Useful when your language has ways of declaring types without an actual implementation.
+          map('gI', require('telescope.builtin').lsp_implementations, '[G]oto [I]mplementation')
+
+          -- Jump to the type of the word under your cursor.
+          --  Useful when you're not sure what type a variable is and you want to see
+          --  the definition of its *type*, not where it was *defined*.
+          map('<leader>D', require('telescope.builtin').lsp_type_definitions, 'Type [D]efinition')
+
+          -- Fuzzy find all the symbols in your current document.
+          --  Symbols are things like variables, functions, types, etc.
+          map('<leader>ds', require('telescope.builtin').lsp_document_symbols, '[D]ocument [S]ymbols')
+
+          -- Fuzzy find all the symbols in your current workspace.
+          --  Similar to document symbols, except searches over your entire project.
+          map('<leader>ws', require('telescope.builtin').lsp_dynamic_workspace_symbols, '[W]orkspace [S]ymbols')
+
+          -- Rename the variable under your cursor.
+          --  Most Language Servers support renaming across files, etc.
+          map('<leader>rn', vim.lsp.buf.rename, '[R]e[n]ame')
+
+          -- Execute a code action, usually your cursor needs to be on top of an error
+          -- or a suggestion from your LSP for this to activate.
+          map('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction', { 'n', 'x' })
+
+          -- WARN: This is not Goto Definition, this is Goto Declaration.
+          --  For example, in C this would take you to the header.
+          map('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
+
+          -- The following two autocommands are used to highlight references of the
+          -- word under your cursor when your cursor rests there for a little while.
+          --    See `:help CursorHold` for information about when this is executed
+          --
+          -- When you move your cursor, the highlights will be cleared (the second autocommand).
+          local client = vim.lsp.get_client_by_id(event.data.client_id)
+          if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight) then
+            local highlight_augroup = vim.api.nvim_create_augroup('kickstart-lsp-highlight', { clear = false })
+            vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
+              buffer = event.buf,
+              group = highlight_augroup,
+              callback = vim.lsp.buf.document_highlight,
+            })
+
+            vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' }, {
+              buffer = event.buf,
+              group = highlight_augroup,
+              callback = vim.lsp.buf.clear_references,
+            })
+
+            vim.api.nvim_create_autocmd('LspDetach', {
+              group = vim.api.nvim_create_augroup('kickstart-lsp-detach', { clear = true }),
+              callback = function(event2)
+                vim.lsp.buf.clear_references()
+                vim.api.nvim_clear_autocmds { group = 'kickstart-lsp-highlight', buffer = event2.buf }
+              end,
+            })
+          end
+
+          -- The following code creates a keymap to toggle inlay hints in your
+          -- code, if the language server you are using supports them
+          --
+          -- This may be unwanted, since they displace some of your code
+          if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint) then
+            map('<leader>th', function()
+              vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf })
+            end, '[T]oggle Inlay [H]ints')
+          end
+        end,
+      })
+      local capabilities = vim.lsp.protocol.make_client_capabilities()
+      capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())
+      -- Language server configurations
+      local servers = {
+        clangd = {
+          capabilities = capabilities,
+          cmd = { "clangd", "--offset-encoding=utf-8" }, -- Ensure clangd uses utf-16
+        },
+        lua_ls = {
+          capabilities = capabilities,
+          settings = {
+            Lua = {
+              completion = {
+                callSnippet = 'Replace',
+              },
             },
           },
         },
-      },
-    }
+      }
 
-    -- Setup LSP servers
-    for server, config in pairs(servers) do
-      require('lspconfig')[server].setup(config)
-    end
+      -- Setup LSP servers
+      for server, config in pairs(servers) do
+        require('lspconfig')[server].setup(config)
+      end
 
-    -- Ensure LSP servers are installed
-    require('mason-lspconfig').setup {
-      ensure_installed = vim.tbl_keys(servers),
-    }
-  end,
-},
+      -- Ensure LSP servers are installed
+      require('mason-lspconfig').setup {
+        ensure_installed = vim.tbl_keys(servers),
+      }
+    end,
+  },
 
   { -- Autoformat
     'stevearc/conform.nvim',
@@ -504,10 +649,12 @@ require('lazy').setup({
         lua = { 'stylua' },
         c = {
           'clang_format',
-          extra_args = { '--style=file', '-assume-filename=' .. os.getenv 'HOME' .. '/.clang-format' },
+          extra_args = function()
+            local config_path = vim.fn.fnamemodify(vim.fn.expand('$MYVIMRC'), ':h') .. '/.clang-format'
+            return { '--style=file', '-assume-filename=' .. config_path }
+          end,
           lsp_fallback = false, -- Disable LSP fallback for C
-        }, -- Conform can also run multiple formatters sequentially
-        -- python = { "isort", "black" },
+        },                      -- python = { "isort", "black" },
         latex = { 'latexindent', 'bibtex-tidy' },
         -- You can use 'stop_after_first' to run the first available formatter from the list
         -- javascript = { "prettierd", "prettier", stop_after_first = true },
@@ -655,22 +802,147 @@ require('lazy').setup({
       -- Simple and easy statusline.
       --  You could remove this setup call if you don't like it,
       --  and try some other statusline plugin
-      local statusline = require 'mini.statusline'
-      -- set use_icons to true if you have a Nerd Font
-      statusline.setup { use_icons = vim.g.have_nerd_font }
+      local statusline = require('mini.statusline')
 
-      -- You can configure sections in the statusline by overriding their
-      -- default behavior. For example, here we set the section for
-      -- cursor location to LINE:COLUMN
-      ---@diagnostic disable-next-line: duplicate-set-field
+      -- Utility functions
+      local function is_laptop()
+        if vim.g.is_laptop ~= nil then
+          return vim.g.is_laptop
+        end
+
+        local has_battery = false
+        local os_name = vim.loop.os_uname().sysname:lower()
+
+        if os_name == "darwin" then
+          has_battery = vim.fn.system('pmset -g batt'):lower():match('battery') ~= nil
+        elseif os_name == "linux" then
+          has_battery = vim.fn.isdirectory('/sys/class/power_supply') == 1 and
+              #vim.fn.globpath('/sys/class/power_supply', 'BAT*', false, true) > 0
+        elseif os_name:match("windows") then
+          has_battery = vim.fn.system('wmic path win32_battery get status'):lower():match('ok') ~= nil
+        end
+
+        vim.g.is_laptop = has_battery
+        return has_battery
+      end
+
+      -- Cache for battery info
+      local battery_cache = {
+        info = '',
+        last_update = 0
+      }
+
+      local function get_battery()
+        if not is_laptop() then return '' end
+
+        -- Update battery info every 60 seconds
+        local current_time = os.time()
+        if current_time - battery_cache.last_update > 60 then
+          local battery_info = ''
+          local os_name = vim.loop.os_uname().sysname:lower()
+
+          if os_name == "darwin" then
+            battery_info = vim.fn.trim(vim.fn.system('pmset -g batt | grep -Eo "\\d+%"'))
+          elseif os_name == "linux" then
+            local acpi = vim.fn.system('acpi -b 2>/dev/null')
+            battery_info = acpi:match('(%d+)%%')
+            if not battery_info then
+              local bat_file = '/sys/class/power_supply/BAT0/capacity'
+              if vim.fn.filereadable(bat_file) == 1 then
+                battery_info = vim.fn.readfile(bat_file)[1] .. '%'
+              end
+            end
+          elseif os_name:match("windows") then
+            battery_info = vim.fn.system('wmic path win32_battery get estimatedchargeremaining'):match('%d+')
+            if battery_info then battery_info = battery_info .. '%' end
+          end
+
+          battery_cache.info = battery_info ~= '' and battery_info or ''
+          battery_cache.last_update = current_time
+        end
+
+        return battery_cache.info
+      end
+
+      local function get_time()
+        return os.date("%H:%M")
+      end
+
+      -- Icons
+      local icons = {
+        battery_full = '󰁹',
+        battery_three_quarters = '󰂂',
+        battery_half = '󰁾',
+        battery_quarter = '󰁻',
+        battery_empty = '󰂎',
+        clock = '󰥔',
+      }
+
+      -- Custom statusline setup
+      statusline.setup({
+        use_icons = vim.g.have_nerd_font,
+        content = {
+          active = function()
+            local mode, mode_hl = statusline.section_mode({ trunc_width = 120 })
+            local git = statusline.section_git({ trunc_width = 75 })
+            local diagnostics = statusline.section_diagnostics({ trunc_width = 75 })
+            local filename = statusline.section_filename({ trunc_width = 140 })
+            local fileinfo = statusline.section_fileinfo({ trunc_width = 120 })
+            local location = statusline.section_location()
+            local search = statusline.section_searchcount({ trunc_width = 75 })
+
+            -- Custom sections
+            local battery = (function()
+              local bat = get_battery()
+              if bat == '' then return '' end
+              local icon = icons.battery_full
+              local num = tonumber(bat:match('%d+'))
+              if num <= 25 then
+                icon = icons.battery_empty
+              elseif num <= 50 then
+                icon = icons.battery_quarter
+              elseif num <= 75 then
+                icon = icons.battery_half
+              elseif num < 100 then
+                icon = icons.battery_three_quarters
+              end
+              return string.format(' %s %s', icon, bat)
+            end)()
+
+            local time = string.format(' %s %s', icons.clock, get_time())
+
+            -- Combine all sections
+            return table.concat({
+              mode, ' ',
+              git, ' ',
+              diagnostics, ' ',
+              '%<', -- Start truncating here if needed
+              filename, ' ',
+              '%=', -- Right align the rest
+              fileinfo, ' ',
+              location, ' ',
+              battery, ' ',
+              time
+            }, '')
+          end,
+          inactive = function()
+            return '%F'
+          end,
+        }
+      })
+
+      -- Override default sections as needed
       statusline.section_location = function()
         return '%2l:%-2v'
       end
-
       -- ... and there is more!
       --  Check out: https://github.com/echasnovski/mini.nvim
     end,
   },
+
+  -- Autocommand to update statusline more frequently
+
+
   { -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
     build = ':TSUpdate',

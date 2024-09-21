@@ -15,10 +15,10 @@ BinPackParameters: false             # Do not pack function parameters into a si
 # Operators and punctuation
 SpaceAroundOperators: true           # Add spaces around operators like +, -, =, etc.
 SpaceAfterCStyleCast: true           # Add a space after C-style casts for readability.
-TernaryOperatorStyle: true           # Add spaces around the `?` and `:` in ternary expressions.
+# TernaryOperatorStyle: true           # Add spaces around the `?` and `:` in ternary expressions.
 
 # Trailing commas
-TrailingCommaInContainerLiterals: true  # Always include trailing commas in multi-line container literals (for readability).
+# TrailingCommaInContainerLiterals: true  # Always include trailing commas in multi-line container literals (for readability).
 
 # Namespace formatting
 NamespaceIndentation: None           # Do not indent inside namespaces.
