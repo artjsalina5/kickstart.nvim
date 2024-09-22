@@ -334,7 +334,7 @@ require('lazy').setup({
       enabled = false, -- Disable luarocks support
     },
   },
-  {                     -- Useful plugin to show you pending keybinds.
+  { -- Useful plugin to show you pending keybinds.
     'folke/which-key.nvim',
     event = 'VimEnter', -- Sets the loading event to 'VimEnter'
     opts = {
@@ -377,13 +377,12 @@ require('lazy').setup({
 
       -- Document existing key chains
       spec = {
-        { '<leader>c', group = '[C]ode',     mode = { 'n', 'x' } },
+        { '<leader>c', group = '[C]ode', mode = { 'n', 'x' } },
         { '<leader>d', group = '[D]ocument' },
         { '<leader>r', group = '[R]ename' },
         { '<leader>s', group = '[S]earch' },
         { '<leader>w', group = '[W]orkspace' },
         { '<leader>t', group = '[T]oggle' },
-        { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
       },
     },
   },
@@ -416,7 +415,7 @@ require('lazy').setup({
       },
       { 'nvim-telescope/telescope-ui-select.nvim' },
       -- Useful for getting pretty icons, but requires a Nerd Font.
-      { 'nvim-tree/nvim-web-devicons',            enabled = vim.g.have_nerd_font },
+      { 'nvim-tree/nvim-web-devicons', enabled = vim.g.have_nerd_font },
     },
     config = function()
       -- Telescope is a fuzzy finder that comes with a lot of different things that
@@ -511,7 +510,7 @@ require('lazy').setup({
       },
     },
   },
-  { 'Bilal2453/luvit-meta',     lazy = true },
+  { 'Bilal2453/luvit-meta', lazy = true },
   {
     -- Main LSP Configuration
     'neovim/nvim-lspconfig',
@@ -523,7 +522,7 @@ require('lazy').setup({
 
       -- Useful status updates for LSP.
       -- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
-      { 'j-hui/fidget.nvim',       opts = {} },
+      { 'j-hui/fidget.nvim', opts = {} },
 
       -- Allows extra capabilities provided by nvim-cmp
       'hrsh7th/cmp-nvim-lsp',
@@ -801,12 +800,12 @@ require('lazy').setup({
           -- `friendly-snippets` contains a variety of premade snippets.
           --    See the README about individual language/framework/plugin snippets:
           --    https://github.com/rafamadriz/friendly-snippets
-          -- {
-          --   'rafamadriz/friendly-snippets',
-          --   config = function()
-          --     require('luasnip.loaders.from_vscode').lazy_load()
-          --   end,
-          -- },
+          {
+            'rafamadriz/friendly-snippets',
+            config = function()
+              require('luasnip.loaders.from_vscode').lazy_load()
+            end,
+          },
         },
       },
       'saadparwaiz1/cmp_luasnip',
@@ -866,7 +865,6 @@ require('lazy').setup({
           --  function $name($args)
           --    $body
           --  end
-          --
           -- <c-l> will move you to the right of each of the expansion locations.
           -- <c-h> is similar, except moving you backwards.
           ['<C-l>'] = cmp.mapping(function()
@@ -935,8 +933,7 @@ require('lazy').setup({
         if os_name == 'darwin' then
           has_battery = vim.fn.system('pmset -g batt'):lower():match 'battery' ~= nil
         elseif os_name == 'linux' then
-          has_battery = vim.fn.isdirectory '/sys/class/power_supply' == 1 and
-          #vim.fn.globpath('/sys/class/power_supply', 'BAT*', false, true) > 0
+          has_battery = vim.fn.isdirectory '/sys/class/power_supply' == 1 and #vim.fn.globpath('/sys/class/power_supply', 'BAT*', false, true) > 0
         elseif os_name:match 'windows' then
           has_battery = vim.fn.system('wmic path win32_battery get status'):lower():match 'ok' ~= nil
         end
@@ -965,12 +962,20 @@ require('lazy').setup({
           if os_name == 'darwin' then
             battery_info = vim.fn.trim(vim.fn.system 'pmset -g batt | grep -Eo "\\d+%"')
           elseif os_name == 'linux' then
-            local acpi = vim.fn.system 'acpi -b 2>/dev/null'
-            battery_info = acpi:match '(%d+)%%'
-            if not battery_info then
-              local bat_file = '/sys/class/power_supply/BAT0/capacity'
-              if vim.fn.filereadable(bat_file) == 1 then
-                battery_info = vim.fn.readfile(bat_file)[1] .. '%'
+            if vim.fn.has 'wsl' == 1 then
+              -- In WSL, run PowerShell command to get battery info from Windows
+              battery_info = vim.fn.system('powershell.exe "Get-WmiObject -Class Win32_Battery | Select-Object EstimatedChargeRemaining"'):match '%d+'
+              if battery_info then
+                battery_info = battery_info .. '%'
+              end
+            else
+              local acpi = vim.fn.system 'acpi -b 2>/dev/null'
+              battery_info = acpi:match '(%d+)%%'
+              if not battery_info then
+                local bat_file = '/sys/class/power_supply/BAT0/capacity'
+                if vim.fn.filereadable(bat_file) == 1 then
+                  battery_info = vim.fn.readfile(bat_file)[1] .. '%'
+                end
               end
             end
           elseif os_name:match 'windows' then
