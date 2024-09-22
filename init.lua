@@ -352,7 +352,7 @@ require('lazy').setup({
 
       local servers = {
         clangd = {
-          cmd = { 'clangd', '--force-encoding=UTF-8' },
+          cmd = { 'clangd', '--force-encoding=UTF-16' },
         },
         jedi_language_server = {},
         texlab = {},
