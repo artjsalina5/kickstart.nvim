@@ -1,29 +1,16 @@
 return {
   {
     'iamcco/markdown-preview.nvim',
+    ft = { 'markdown' }, -- Load the plugin only for markdown files
     cmd = { 'MarkdownPreviewToggle', 'MarkdownPreview', 'MarkdownPreviewStop' },
     build = function()
-      require('lazy').load { plugins = { 'markdown-preview.nvim' } }
       vim.fn['mkdp#util#install']()
     end,
-    keys = {
-      {
-        '<leader>cp',
-        ft = 'markdown',
-        '<cmd>MarkdownPreviewToggle<cr>',
-        desc = 'Markdown Preview',
-      },
-    },
-    config = function()
-      vim.g.mkdp_auto_start = 0
-      vim.g.mkdp_auto_close = 1
-      vim.g.mkdp_refresh_slow = 0
-      vim.g.mkdp_command_for_global = 0
-      vim.g.mkdp_browser = 'wslview'
-      vim.g.mkdp_open_to_the_world = 0
+    init = function()
+      vim.g.mkdp_filetypes = { 'markdown' }
       vim.g.mkdp_preview_options = {
-        mkit = {},
-        katex = {},
+        mkit = {}, -- markdown-it options
+        katex = {}, -- KaTeX support for math rendering
         uml = {}, -- Mermaid support for UML diagrams
         maid = {}, -- Mermaid support
         disable_sync_scroll = 0, -- Enable sync scroll
@@ -31,16 +18,14 @@ return {
         hide_yaml_meta = 1, -- Hide YAML metadata in preview
       }
     end,
-  },
-  {
-    'nvimtools/none-ls.nvim',
-    optional = true,
-    opts = function(_, opts)
-      local nls = require 'null-ls'
-      opts.sources = vim.list_extend(opts.sources or {}, {
-        nls.builtins.diagnostics.markdownlint_cli2,
-      })
-    end,
+    keys = {
+      {
+        '<leader>cp',
+        '<cmd>MarkdownPreviewToggle<cr>',
+        desc = 'Markdown Preview',
+        mode = 'n',
+      },
+    },
   },
   {
     'MeanderingProgrammer/render-markdown.nvim',
@@ -79,10 +64,11 @@ return {
       require('window-picker').setup()
     end,
   },
-  { 'github/copilot.vim', lazy = false },
+  { 'github/copilot.vim', event = 'InsertEnter' },
   {
     'lervag/vimtex',
     lazy = false,
+    ft = { 'tex', 'bib', 'latex' },
     config = function()
       vim.opt.conceallevel = 1
     end,

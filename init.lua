@@ -8,7 +8,8 @@ vim.api.nvim_set_hl(0, 'NormalNC', { bg = 'NONE' })
 vim.api.nvim_set_hl(0, 'NormalFloat', { bg = 'NONE' })
 vim.api.nvim_set_hl(0, 'FloatBorder', { bg = 'NONE' })
 vim.api.nvim_set_hl(0, 'SignColumn', { bg = 'NONE' })
-vim.api.nvim_set_hl(0, 'ColorColumn', { bg = '#282828', reverse = true })
+vim.api.nvim_set_hl(0, 'ColorColumn', { bg = '#282828' })
+vim.g.mkdp_browser = 'firefox'
 
 local function command_exists(cmd)
   local handle = io.popen('where ' .. cmd .. ' 2>nul')
@@ -350,7 +351,9 @@ require('lazy').setup({
       capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())
 
       local servers = {
-        clangd = {},
+        clangd = {
+          cmd = { 'clangd', '--force-encoding=UTF-8' },
+        },
         jedi_language_server = {},
         texlab = {},
         marksman = {},
