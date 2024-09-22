@@ -3,9 +3,7 @@ return {
     'iamcco/markdown-preview.nvim',
     ft = { 'markdown' }, -- Load the plugin only for markdown files
     cmd = { 'MarkdownPreviewToggle', 'MarkdownPreview', 'MarkdownPreviewStop' },
-    build = function()
-      vim.fn['mkdp#util#install']()
-    end,
+    build = 'cd app && npm install',
     init = function()
       vim.g.mkdp_filetypes = { 'markdown' }
       vim.g.mkdp_preview_options = {
