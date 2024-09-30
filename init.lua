@@ -63,6 +63,7 @@ vim.opt.timeoutlen = 300
 vim.opt.splitright = true
 vim.opt.splitbelow = true
 vim.opt.list = true
+vim.opt.foldmethod = 'syntax'
 vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
 vim.opt.inccommand = 'split'
 vim.opt.scrolloff = 10
@@ -352,7 +353,16 @@ require('lazy').setup({
 
       local servers = {
         clangd = {
-          cmd = { 'clangd', '--force-encoding=UTF-16' },
+          capabilities = {
+            offsetEncoding = { 'utf-16' },
+          },
+          cmd = {
+            'clangd',
+            '--background-index',
+            '--header-insertion=iwyu',
+            '--completion-style=detailed',
+            '--function-arg-placeholders',
+          },
         },
         jedi_language_server = {},
         texlab = {},
@@ -408,148 +418,7 @@ require('lazy').setup({
       }
     end,
   },
-  -- Autoformat
-  {
-    'stevearc/conform.nvim',
-    event = { 'BufWritePre' },
-    cmd = { 'ConformInfo' },
-    keys = {
-      {
-        '<leader>f',
-        function()
-          require('conform').format { async = true, lsp_fallback = true }
-        end,
-        desc = '[F]ormat buffer',
-      },
-    },
-    opts = {
-      notify_on_error = false,
-      format_on_save = function(bufnr)
-        local disable_filetypes = { c = true, cpp = true }
-        return {
-          timeout_ms = 500,
-          lsp_fallback = not disable_filetypes[vim.bo[bufnr].filetype],
-        }
-      end,
-      formatters_by_ft = {
-        lua = { 'stylua' },
-        python = { 'isort', 'black' },
-        javascript = { 'prettierd' },
-        typescript = { 'prettierd' },
-        json = { 'prettierd' },
-        html = { 'prettierd' },
-        css = { 'prettierd' },
-        yaml = { 'prettierd' },
-        markdown = { 'prettier', 'markdownlint-cli2', 'markdown-toc' },
-        tex = { 'latexindent' },
-        bib = { 'bibtex-tidy' },
-        ['*'] = { 'codespell' },
-        c = {
-          'clang_format',
-          extra_args = function()
-            local config_path = vim.fn.fnamemodify(vim.fn.expand '$MYVIMRC', ':h') .. '/.clang-format'
-            return { '--style=file', '-assume-filename=' .. config_path }
-          end,
-          lsp_fallback = false, -- Disable LSP fallback for C
-        },
-        formatters = {
-          markdown_toc = {
-            condition = function(_, ctx)
-              for _, line in ipairs(vim.api.nvim_buf_get_lines(ctx.buf, 0, -1, false)) do
-                if line:find '<!%-%- toc %-%->' then
-                  return true
-                end
-              end
-            end,
-          },
-          markdownlint_cli2 = {
-            condition = function(_, ctx)
-              local diag = vim.tbl_filter(function(d)
-                return d.source == 'markdownlint'
-              end, vim.diagnostic.get(ctx.buf))
-              return #diag > 0
-            end,
-          },
-          isort = {
-            extra_args = { '--line-ending', line_ending },
-          },
-        },
-      },
-    },
-  },
-  {
-    'hrsh7th/nvim-cmp',
-    event = 'InsertEnter',
-    dependencies = {
-      {
-        'L3MON4D3/LuaSnip',
-        build = (function()
-          if vim.fn.has 'win32' == 1 or vim.fn.executable 'make' == 0 then
-            return
-          end
-          return 'make install_jsregexp'
-        end)(),
-        dependencies = {
-          {
-            'rafamadriz/friendly-snippets',
-            config = function()
-              require('luasnip.loaders.from_vscode').lazy_load()
-            end,
-          },
-        },
-      },
-      'saadparwaiz1/cmp_luasnip',
-      'hrsh7th/cmp-nvim-lsp',
-      'hrsh7th/cmp-path',
-    },
-    config = function()
-      local cmp = require 'cmp'
-      local luasnip = require 'luasnip'
-      luasnip.config.setup {}
-
-      cmp.setup {
-        snippet = {
-          expand = function(args)
-            luasnip.lsp_expand(args.body)
-          end,
-        },
-        completion = { completeopt = 'menu,menuone,noinsert' },
-
-        mapping = cmp.mapping.preset.insert {
-          ['<C-n>'] = cmp.mapping.select_next_item(),
-          ['<C-p>'] = cmp.mapping.select_prev_item(),
-          ['<C-b>'] = cmp.mapping.scroll_docs(-4),
-          ['<C-f>'] = cmp.mapping.scroll_docs(4),
-
-          ['<C-y>'] = cmp.mapping.confirm { select = true },
-
-          ['<C-Space>'] = cmp.mapping.complete {},
-          ['<C-l>'] = cmp.mapping(function()
-            if luasnip.expand_or_locally_jumpable() then
-              luasnip.expand_or_jump()
-            end
-          end, { 'i', 's' }),
-          ['<C-h>'] = cmp.mapping(function()
-            if luasnip.locally_jumpable(-1) then
-              luasnip.jump(-1)
-            end
-          end, { 'i', 's' }),
-        },
-        sources = {
-          {
-            name = 'lazydev',
-            group_index = 0,
-          },
-          { name = 'nvim_lsp' },
-          { name = 'luasnip' },
-          { name = 'path' },
-        },
-      }
-    end,
-  },
-
   { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
-
   {
     'echasnovski/mini.nvim',
     config = function()
@@ -726,8 +595,8 @@ require('lazy').setup({
     end,
   },
 
-  require 'kickstart.plugins.indent_line',
-  require 'kickstart.plugins.lint',
+  -- require 'kickstart.plugins.indent_line',
+  -- require 'kickstart.plugins.lint',
   require 'kickstart.plugins.autopairs',
   require 'kickstart.plugins.neo-tree',
 

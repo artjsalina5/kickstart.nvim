@@ -14,6 +14,12 @@ return {
     { '<leader>e', '<cmd>Neotree reveal toggle<CR>', desc = 'NeoTree' },
   },
   config = function()
-    require("neo-tree").setup()
+    require('neo-tree').setup()
+    vim.api.nvim_create_autocmd('FileType', {
+      pattern = 'neo-tree',
+      callback = function()
+        vim.opt_local.foldenable = false
+      end,
+    })
   end,
 }
