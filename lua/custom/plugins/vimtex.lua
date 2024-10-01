@@ -8,6 +8,7 @@ return {
       vim.g.vimtex_compiler_latexmk = {
         options = {
           '-pdf',
+          '-shell-escape',
           '-interaction=nonstopmode',
           '-synctex=1',
         },
