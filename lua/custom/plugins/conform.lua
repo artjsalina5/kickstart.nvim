@@ -30,7 +30,6 @@ return {
         html = { 'prettierd' },
         css = { 'prettierd' },
         yaml = { 'prettierd' },
-        markdown = { 'prettier', 'markdownlint-cli2', 'markdown-toc' },
         tex = { 'latexindent' },
         bib = { 'bibtex-tidy' },
         ['*'] = { 'codespell' },
