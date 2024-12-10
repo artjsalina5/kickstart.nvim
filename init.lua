@@ -35,15 +35,12 @@ end)
 
 vim.opt.colorcolumn = '80'
 vim.opt.relativenumber = true
-vim.opt.autoindent = true
-vim.opt.smartindent = true
 vim.opt.lazyredraw = true
 vim.opt.ignorecase = true
 vim.opt.incsearch = true
 vim.opt.hlsearch = true
 vim.opt.laststatus = 2
 vim.opt.expandtab = true
-vim.opt.smarttab = true
 vim.opt.modeline = true
 -- vim.opt.tabstop = 4
 -- vim.opt.shiftwidth = 4
@@ -391,7 +388,6 @@ require('lazy').setup({
         'prettierd',
         'bibtex-tidy',
         'clang-format',
-        'latexindent',
         'markdownlint',
         'markdownlint-cli2',
         'markdown-toc',
@@ -419,6 +415,7 @@ require('lazy').setup({
     opts = {
       ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'vhdl' },
       auto_install = true,
+      ignore_install = { 'latex' },
       highlight = {
         enable = true,
         disable = { 'latex' },

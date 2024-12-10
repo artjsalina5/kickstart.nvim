@@ -4,8 +4,14 @@ return {
     lazy = false,
     ft = { 'tex', 'bib', 'latex' },
     config = function()
-      vim.opt.conceallevel = 1
-      -- vim.opt.vimtex_view_method = 'zathura'
+      -- General Vim settings
+      vim.opt.conceallevel = 2
+
+      -- vimtex-specific settings
+      vim.g.vimtex_view_method = 'general'
+      vim.g.vimtex_view_general_viewer = vim.fn.expand '~/.local/bin/sumatrapdf.sh'
+      vim.g.vimtex_view_general_options = '-reuse-instance -forward-search @tex @line @pdf'
+      vim.g.vimtex_format_enabled = 1
       vim.g.vimtex_compiler_latexmk = {
         options = {
           '-pdf',
